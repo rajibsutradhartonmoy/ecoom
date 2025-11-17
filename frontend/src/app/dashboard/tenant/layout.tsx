@@ -12,6 +12,7 @@ const tenantNavItems = [
   { title: 'Orders', href: '/dashboard/tenant/orders' },
   { title: 'Customers', href: '/dashboard/tenant/customers' },
   { title: 'Coupons', href: '/dashboard/tenant/coupons' },
+  { title: 'Billing', href: '/dashboard/tenant/billing' },
   { title: 'Analytics', href: '/dashboard/tenant/analytics' },
   { title: 'Settings', href: '/dashboard/tenant/settings' },
 ];

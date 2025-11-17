@@ -42,6 +42,7 @@ model Tenant {
   orders      Order[]
   customers   Customer[]
   coupons     Coupon[]
+  subscription Subscription?
 
   @@map("tenants")
 }
@@ -417,4 +418,185 @@ model AuditLog {
   @@index([userId])
   @@index([entityType, entityId])
   @@map("audit_logs")
+}
+
+// ============================================================================
+// SAAS BILLING & SUBSCRIPTIONS
+// ============================================================================
+
+model SubscriptionPlan {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  displayName     String   @map("display_name")
+  description     String?
+
+  // Stripe
+  stripePriceId   String?  @unique @map("stripe_price_id")
+  stripeProductId String?  @map("stripe_product_id")
+
+  // Pricing
+  priceMonthly    Decimal  @db.Decimal(10, 2) @map("price_monthly")
+  priceYearly     Decimal  @db.Decimal(10, 2) @map("price_yearly")
+  currency        String   @default("usd")
+
+  // Limits
+  maxProducts     Int      @default(10) @map("max_products")
+  maxOrders       Int      @default(100) @map("max_orders") // per month
+  maxStorage      Int      @default(1000) @map("max_storage") // in MB
+  maxStaff        Int      @default(1) @map("max_staff")
+
+  // Features
+  features        Json     @default("[]") // Array of feature keys
+
+  // Status
+  isActive        Boolean  @default(true) @map("is_active")
+  isPublic        Boolean  @default(true) @map("is_public") // Show on pricing page
+  sortOrder       Int      @default(0) @map("sort_order")
+
+  trialDays       Int      @default(14) @map("trial_days")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  subscriptions   Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id              String   @id @default(uuid())
+  tenantId        String   @unique @map("tenant_id")
+  planId          String   @map("plan_id")
+
+  // Stripe
+  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
+  stripeCustomerId     String? @map("stripe_customer_id")
+
+  // Status
+  status          SubscriptionStatus @default(TRIALING)
+
+  // Dates
+  trialStartsAt   DateTime? @map("trial_starts_at")
+  trialEndsAt     DateTime? @map("trial_ends_at")
+  currentPeriodStart DateTime? @map("current_period_start")
+  currentPeriodEnd   DateTime? @map("current_period_end")
+  canceledAt      DateTime? @map("canceled_at")
+  endedAt         DateTime? @map("ended_at")
+
+  // Billing
+  billingCycle    BillingCycle @default(MONTHLY) @map("billing_cycle")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  invoices        Invoice[]
+  usageRecords    UsageRecord[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+model Invoice {
+  id              String   @id @default(uuid())
+  subscriptionId  String   @map("subscription_id")
+
+  // Stripe
+  stripeInvoiceId String?  @unique @map("stripe_invoice_id")
+
+  // Details
+  number          String   @unique
+  status          InvoiceStatus @default(DRAFT)
+
+  // Amounts
+  subtotal        Decimal  @db.Decimal(10, 2)
+  tax             Decimal  @default(0) @db.Decimal(10, 2)
+  total           Decimal  @db.Decimal(10, 2)
+  amountPaid      Decimal  @default(0) @db.Decimal(10, 2) @map("amount_paid")
+  amountDue       Decimal  @db.Decimal(10, 2) @map("amount_due")
+
+  currency        String   @default("usd")
+
+  // Dates
+  periodStart     DateTime @map("period_start")
+  periodEnd       DateTime @map("period_end")
+  dueDate         DateTime @map("due_date")
+  paidAt          DateTime? @map("paid_at")
+
+  // PDF
+  invoiceUrl      String?  @map("invoice_url")
+  invoicePdf      String?  @map("invoice_pdf")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([status])
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+}
+
+model UsageRecord {
+  id              String   @id @default(uuid())
+  subscriptionId  String   @map("subscription_id")
+
+  // Usage type
+  metricName      String   @map("metric_name") // e.g., "products", "orders", "storage"
+  quantity        Int
+
+  // Period
+  recordedAt      DateTime @default(now()) @map("recorded_at")
+  periodStart     DateTime @map("period_start")
+  periodEnd       DateTime @map("period_end")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([metricName, periodStart, periodEnd])
+  @@map("usage_records")
+}
+
+// Webhook event tracking
+model WebhookEvent {
+  id              String   @id @default(uuid())
+
+  // Stripe
+  stripeEventId   String   @unique @map("stripe_event_id")
+  type            String   // e.g., "invoice.paid", "subscription.updated"
+
+  // Processing
+  processed       Boolean  @default(false)
+  processedAt     DateTime? @map("processed_at")
+  error           String?
+
+  // Raw data
+  payload         Json
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([type])
+  @@index([processed])
+  @@map("webhook_events")
 }

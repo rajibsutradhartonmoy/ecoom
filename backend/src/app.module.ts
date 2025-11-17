@@ -12,6 +12,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { StoreModule } from './modules/store/store.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { BillingModule } from './modules/billing/billing.module';
 
 // Middleware
 import { TenantResolutionMiddleware } from './common/middleware/tenant-resolution.middleware';
@@ -20,7 +21,6 @@ import { TenantResolutionMiddleware } from './common/middleware/tenant-resolutio
 // import { ShippingModule } from './modules/shipping/shipping.module';
 // import { TaxesModule } from './modules/taxes/taxes.module';
 // import { AnalyticsModule } from './modules/analytics/analytics.module';
-// import { BillingModule } from './modules/billing/billing.module';
 // import { CheckoutModule } from './modules/checkout/checkout.module';
 // import { EmailModule } from './modules/email/email.module';
 // import { LoggerModule } from './modules/logger/logger.module';
@@ -59,6 +59,7 @@ import { JwtAuthGuard } from './common/guards';
     CategoriesModule,
     StoreModule, // Public storefront API
     OrdersModule,
+    BillingModule,
     // CustomersModule,
     // CouponsModule,
     // ShippingModule,

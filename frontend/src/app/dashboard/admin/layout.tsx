@@ -9,6 +9,7 @@ const adminNavItems = [
   { title: 'Overview', href: '/dashboard/admin' },
   { title: 'Tenants', href: '/dashboard/admin/tenants' },
   { title: 'Users', href: '/dashboard/admin/users' },
+  { title: 'Plans', href: '/dashboard/admin/plans' },
   { title: 'Billing', href: '/dashboard/admin/billing' },
   { title: 'Analytics', href: '/dashboard/admin/analytics' },
   { title: 'Settings', href: '/dashboard/admin/settings' },
