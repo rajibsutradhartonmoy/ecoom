@@ -1,8 +1,10 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { ProductsService } from '../products/products.service';
 import { CategoriesService } from '../categories/categories.service';
+import { OrdersService } from '../orders/orders.service';
 import { ProductQueryDto } from '../products/dto';
+import { CreateOrderDto } from '../orders/dto';
 import { Public, CurrentTenant } from '@/common/decorators';
 
 @ApiTags('store')
@@ -11,6 +13,7 @@ export class StoreController {
   constructor(
     private readonly productsService: ProductsService,
     private readonly categoriesService: CategoriesService,
+    private readonly ordersService: OrdersService,
   ) {}
 
   @Public()
@@ -82,5 +85,15 @@ export class StoreController {
       status: 'ACTIVE' as const,
       limit: 12,
     });
+  }
+
+  @Public()
+  @Post('checkout')
+  @ApiOperation({ summary: 'Create a new order' })
+  @ApiParam({ name: 'slug', description: 'Store slug' })
+  @ApiResponse({ status: 201, description: 'Order created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid order data or insufficient stock' })
+  async createOrder(@CurrentTenant('id') tenantId: string, @Body() dto: CreateOrderDto) {
+    return this.ordersService.create(tenantId, dto);
   }
 }

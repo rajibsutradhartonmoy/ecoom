@@ -11,10 +11,10 @@ import { TenancyModule } from './modules/tenancy/tenancy.module';
 import { ProductsModule } from './modules/products/products.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { StoreModule } from './modules/store/store.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 // Middleware
 import { TenantResolutionMiddleware } from './common/middleware/tenant-resolution.middleware';
-// import { OrdersModule } from './modules/orders/orders.module';
 // import { CustomersModule } from './modules/customers/customers.module';
 // import { CouponsModule } from './modules/coupons/coupons.module';
 // import { ShippingModule } from './modules/shipping/shipping.module';
@@ -58,7 +58,7 @@ import { JwtAuthGuard } from './common/guards';
     ProductsModule,
     CategoriesModule,
     StoreModule, // Public storefront API
-    // OrdersModule,
+    OrdersModule,
     // CustomersModule,
     // CouponsModule,
     // ShippingModule,

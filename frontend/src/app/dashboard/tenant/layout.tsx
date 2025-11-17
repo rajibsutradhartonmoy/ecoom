@@ -52,7 +52,9 @@ export default function TenantDashboardLayout({ children }: { children: React.Re
         items={tenantNavItems}
         title={currentTenant?.tenantName || 'Store Admin'}
       />
-      <main className="flex-1 overflow-auto bg-gray-100">{children}</main>
+      <main className="flex-1 overflow-auto bg-gray-100">
+        <div className="p-6">{children}</div>
+      </main>
     </div>
   );
 }
