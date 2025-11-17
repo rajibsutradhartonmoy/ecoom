@@ -3,6 +3,8 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters';
+import { TransformResponseInterceptor } from './common/interceptors';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -18,6 +20,12 @@ async function bootstrap() {
     origin: configService.get<string>('FRONTEND_URL', 'http://localhost:3000'),
     credentials: true,
   });
+
+  // Global exception filter
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Global response interceptor
+  app.useGlobalInterceptors(new TransformResponseInterceptor());
 
   // Global validation pipe
   app.useGlobalPipes(

@@ -1,12 +1,16 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
-// Core modules (will be implemented in phases)
-// import { AuthModule } from './modules/auth/auth.module';
+// Core modules
+import { AuthModule } from './modules/auth/auth.module';
 // import { UsersModule } from './modules/users/users.module';
-// import { TenantsModule } from './modules/tenants/tenants.module';
-// import { TenancyModule } from './modules/tenancy/tenancy.module';
+import { TenantsModule } from './modules/tenants/tenants.module';
+import { TenancyModule } from './modules/tenancy/tenancy.module';
+
+// Middleware
+import { TenantResolutionMiddleware } from './common/middleware/tenant-resolution.middleware';
 // import { ProductsModule } from './modules/products/products.module';
 // import { CategoriesModule } from './modules/categories/categories.module';
 // import { OrdersModule } from './modules/orders/orders.module';
@@ -22,6 +26,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
 // Lib modules
 import { PrismaModule } from './lib/db/prisma.module';
+
+// Guards
+import { JwtAuthGuard } from './common/guards';
 
 @Module({
   imports: [
@@ -42,11 +49,11 @@ import { PrismaModule } from './lib/db/prisma.module';
     // Database
     PrismaModule,
 
-    // Feature modules (will be uncommented as implemented)
-    // AuthModule,
+    // Feature modules
+    AuthModule,
     // UsersModule,
-    // TenantsModule,
-    // TenancyModule,
+    TenantsModule,
+    TenancyModule,
     // ProductsModule,
     // CategoriesModule,
     // OrdersModule,
@@ -61,6 +68,20 @@ import { PrismaModule } from './lib/db/prisma.module';
     // LoggerModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    // Global JWT Auth Guard - all routes protected by default
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Apply tenant resolution middleware to store routes
+    consumer.apply(TenantResolutionMiddleware).forRoutes({
+      path: 'store/*',
+      method: RequestMethod.ALL,
+    });
+  }
+}
