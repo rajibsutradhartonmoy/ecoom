@@ -13,11 +13,12 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { StoreModule } from './modules/store/store.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 // Middleware
 import { TenantResolutionMiddleware } from './common/middleware/tenant-resolution.middleware';
-// import { CustomersModule } from './modules/customers/customers.module';
-// import { CouponsModule } from './modules/coupons/coupons.module';
 // import { ShippingModule } from './modules/shipping/shipping.module';
 // import { TaxesModule } from './modules/taxes/taxes.module';
 // import { AnalyticsModule } from './modules/analytics/analytics.module';
@@ -60,11 +61,11 @@ import { JwtAuthGuard } from './common/guards';
     StoreModule, // Public storefront API
     OrdersModule,
     BillingModule,
-    // CustomersModule,
-    // CouponsModule,
+    CouponsModule,
+    CustomersModule,
+    AnalyticsModule,
     // ShippingModule,
     // TaxesModule,
-    // AnalyticsModule,
     // BillingModule,
     // CheckoutModule,
     // EmailModule,
